@@ -1,0 +1,7 @@
+<?
+	session_start();
+	unset($_SESSION['userAdminGanesha']);
+	unset($_SESSION['passAdminGanesha']);
+	session_destroy();
+	header("location:index.php");
+?>

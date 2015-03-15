@@ -1,0 +1,58 @@
+<? 
+	session_start();
+	if(!isset($_SESSION['userAdminGanesha']) and !isset($_SESSION['passAdminGanesha'])){
+		header("location:index.php");
+	}else{
+?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<link rel="stylesheet" type="text/css" href="frame.css" />
+	<link rel="stylesheet" type="text/css" href="../plugin/qFrame/style/style.css" />
+	<script src="../clock.js" type="text/javascript"></script>
+	<script type="text/javascript" src="../plugin/jquery-1.2.3.pack.js"></script>
+	<script type="text/javascript" src="../plugin/jquery.validate.pack.js"></script>
+	<script type="text/javascript">
+		function menu(hal){
+			location="main_menu.php?page="+hal;	
+		}
+		function logout(){
+			location="logout.php";	
+		}
+	</script>
+</head>
+<body>
+ <table width="95%" align="center">
+ 	<tr>
+		<td align="left">
+			<form>
+				<input type="button" class="button" value="Home" onclick="menu('home');" />
+				<input type="button" class="button" value="Data Siswa" onclick="menu('siswa');" />
+				<input type="button" class="button" value="Data Voting" onclick="menu('kategori_vote');" />
+				<input type="button" class="button" value="Logout" onclick="logout();" />
+			</form>
+		</td> 	
+ 	</tr>
+ 	<tr>
+ 		<td>
+ 		<div id="container">
+ 			<?php
+ 				if(isset($_REQUEST['page'])){
+ 					$page=$_REQUEST['page'];
+ 					if ($page=="home"){
+ 						include("home.php");	
+ 					}else if ($page=="siswa"){
+ 						include("siswa.php");	
+ 					}else if ($page=="kategori_vote"){
+ 						include("kategori_vote.php");	
+ 					}
+ 				}else {
+ 					include("home.php");
+ 				}
+ 			?>
+ 		</div>
+ 		</td>
+ 	</tr>
+ </table>
+</body>
+</html>
+<?php } ?>

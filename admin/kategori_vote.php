@@ -1,0 +1,205 @@
+<script type="text/javascript">
+	function show(id){
+  		var e=document.getElementById(id);
+  		if(!e)return true;
+  		if(e.style.display=="none"){
+    		e.style.display="inline";
+  		}else{
+  			e.style.display="none";
+  		}
+	}
+	function toggle(id){
+  		var e=document.getElementById(id);
+  		if(!e)return true;
+  		if(e.style.display=="none"){
+    		e.style.display="block";
+  		}else{
+  			e.style.display="none";
+  		}
+	}
+	function hapus(kat){
+		if(confirm("Hapus Permanen Kategori ini???")){
+			location="hapus_kategori.php?id="+kat;	
+		}	
+	}
+	function pilih_kelas(id){
+		var pilih=encodeURIComponent(document.getElementById("select_kelas"+id).value);
+		for (i=1;i<=15;i++){
+			if (i==pilih){
+				document.getElementById(i+id).style.display="inline-block";
+			}else{
+				document.getElementById(i+id).style.display="none";
+			}	
+		}
+	}
+	function tambah(j,id){
+		var p=encodeURIComponent(document.getElementById(j+id).value);
+		if (p!=""){
+			document.getElementById("tambah"+id).style.display="inline-block";	
+		}else{
+			document.getElementById("tambah"+id).style.display="none";		
+		}	
+	}
+</script>
+<?php
+	require_once("../plugin/qFrame/qFrame.php");
+	$op=new q_sql();
+	$tbl=new q_grid();
+	if (isset($_POST['tambah'])){
+		$kategori=$_POST['kategori'];
+		$upd=$op->save("tb_kategori","kategori","'$kategori'");
+		$c=$op->cs_query("SELECT * FROM tb_kategori ORDER BY id DESC");
+		$d=mysql_fetch_array($c);
+		$id="k".$d['id'];
+		$add=$op->cs_query("ALTER TABLE `tb_vote` ADD `$id` INT(3) NOT NULL ");
+	}
+	$cek=$op->cs_query("SELECT * FROM tb_kategori ORDER BY id ASC");
+	while($dc=mysql_fetch_array($cek)){
+		$id=$dc['id'];
+		$tambah="tambah".$id;
+		if (isset($_POST[$tambah])){
+			$t="select_kelas".$id;
+			$a=$_POST[$t].$id;
+			$b=$_POST[$a];
+			$nomi=$op->save("tb_nominator","nama,kategori","'$b','$id'");	
+		}
+		$h="hapus".$id;
+		if(isset($_POST[$h])){
+			$c="cek".$id;
+			$id_siswa=$_POST[$c];
+			$jum=count($id_siswa);
+			for ($m=0; $m<$jum; $m++){
+				$q=$op->delete("tb_nominator","id='$id_siswa[$m]'");
+			}
+		}
+	}
+?>
+<form action="<? $_SERVER['PHP_SELF'];?>" method="post">
+	<input type="button" value="Tambah Kategori" id="tombol" onclick="show('kategori');show('tambah');show('tombol');document.getElementById('kategori').focus()" name="tombol" class="button">
+	<input type="text" id="kategori" name="kategori" style="display:none; width:250px">
+	<input type="submit" value="Tambah Kategori" id="tambah" name="tambah" class="button" style="display:none;">
+</form>
+<table cellpadding="5" width="99%">
+	<tr>
+	<?php
+		$view=$op->cs_query("SELECT * FROM tb_kategori ORDER BY kategori ASC");
+		$i=1;
+		while($dt=mysql_fetch_array($view)){
+			$kat=$dt['kategori'];
+			$id=$dt['id'];
+	?>
+		<td width="50%" valign="top">
+			<div>
+				<form action="<? $_SERVER['PHP_SELF'];?>" method="post">
+				<table cellpadding="1" cellspacing="1" border="0" align="left" bgcolor="#CCCCCC" style="font-family:arial;margin-top:0px;" width="100%">
+					<tr style="color:#FFFFFF;background:#006699;">
+						<th colspan="4">
+						<div style="width:100%;">
+						<table width="100%">
+						<tr style="color:#FFFFFF;background:#006699;">
+						<th width="85%">
+						Nominasi Kategori: <?php echo $kat; ?>
+						</th><th>
+						<input type="button" value="Hapus" onclick="hapus('<?php echo $id ?>');" style="border-radius:2px;border:none;font-size:10px;">
+						</th></tr>
+						</table>
+						</div>
+						</th>
+					</tr>
+					<?php $tbl->headtb("Nama,Kelas,Suara,Action"); 
+						$arr_nomi=$op->cs_query("SELECT * FROM tb_nominator WHERE kategori='$id' ORDER BY id ASC");
+						$l=1;
+						while($nomi=mysql_fetch_array($arr_nomi)){
+							if($l % 2){
+								$bg="#EAEAEA";
+							}else{
+								$bg="#FFFFFF";
+							}
+							$nama_nomi=$nomi['nama'];
+							$id_nomi=$nomi['id'];
+							$arr_siswa=$op->cs_query("SELECT * FROM tb_siswa WHERE id='$nama_nomi'");
+							$siswa=mysql_fetch_array($arr_siswa);
+					?>
+					<tr bgcolor="<?php echo $bg; ?>" style="font-size:14px;">
+						<td width="60%" style="padding-left:20px;"><?php echo $siswa['nama']; ?></td>
+						<td width="15%" align="center"><?php echo $siswa['kelas']; ?></td>
+						<td width="15%" align="center">
+						<?php $suara=$op->cs_query("SELECT * FROM tb_vote WHERE k$id='$nama_nomi'");
+							echo mysql_num_rows($suara);
+						?>						
+						</td>
+						<td width="10%" align="center"><input type="checkbox" name="cek<?php echo $id ?>[]" id="cek<?php echo $id ?>[]" value="<? echo $id_nomi;?>" /></td>					
+					</tr>
+					<?php $l++;} ?>
+					<tr>
+						<td colspan="3" align="left">
+						<input type="button" id="nomi<?php echo $id ?>" value="Tambah Nominator" style="border-radius:2px;border:none;font-size:12px;" onclick="toggle('form<?php echo $id ?>');show('nomi<?php echo $id ?>')">
+						<div style="height:22px;display:none;" id="form<?php echo $id ?>">
+							<form action="<? $_SERVER['PHP_SELF'];?>" method="post">
+								<select id="select_kelas<?php echo $id ?>" name="select_kelas<?php echo $id ?>" onchange="pilih_kelas('<?php echo $id ?>');">
+									<option value="" >- Pilih Kelas -</option>
+									<?php 
+									for($j=1;$j<=12;$j++){						
+									?>					
+									<option value="<?php echo $j; ?>" >XII IPA <?php echo $j; ?></option>
+									<?php } ?>
+									<option value="13" >XII IPS 1</option>
+									<option value="14" >XII IPS 2</option>
+									<option value="15" >XII AKSEL</option>
+								</select>
+								<?php 
+									for($j=1;$j<=12;$j++){
+										$select_kelas="XII IPA ".$j;
+										$v=$op->cs_query("SELECT * FROM tb_siswa WHERE kelas='$select_kelas' ORDER BY nama ASC");
+										$k=1;?>
+									<select id="<?php echo $j.$id ?>" name="<?php echo $j.$id ?>" style="display:none;" onchange="tambah('<?php echo $j ?>','<?php echo $id ?>');">
+										<option value="">- Pilih Nama -</option>
+								<?php
+										while($n=mysql_fetch_array($v)){
+								?>	
+										<option value="<?php echo $n['id']; ?>"><?php echo $n['nama']; ?></option>
+								<?php } ?>	
+								</select>				
+								<?php }	?>	
+								<?php 
+									for($j=13;$j<=14;$j++){
+										$select_kelas="XII IPS ".($j-12);
+										$v=$op->cs_query("SELECT * FROM tb_siswa WHERE kelas='$select_kelas' ORDER BY nama ASC");
+										$k=1;?>
+									<select id="<?php echo $j.$id ?>" name="<?php echo $j.$id ?>" style="display:none;" onchange="tambah('<?php echo $j ?>','<?php echo $id ?>');">
+										<option value="">- Pilih Nama -</option>
+								<?php
+										while($n=mysql_fetch_array($v)){
+								?>	
+										<option value="<?php echo $n['id']; ?>"><?php echo $n['nama']; ?></option>
+								<?php } ?>	
+								</select>				
+								<?php }	?>
+								<?php 
+										$select_kelas="XII AKSEL";
+										$v=$op->cs_query("SELECT * FROM tb_siswa WHERE kelas='$select_kelas' ORDER BY nama ASC");
+										$k=1;?>
+									<select id="<?php echo '15'.$id ?>" name="<?php echo '15'.$id ?>" style="display:none;" onchange="tambah('15','<?php echo $id ?>');">
+										<option value="">- Pilih Nama -</option>
+								<?php
+										while($n=mysql_fetch_array($v)){
+								?>	
+										<option value="<?php echo $n['id']; ?>"><?php echo $n['nama']; ?></option>
+								<?php } ?>	
+								</select>
+								<input type="submit" name="tambah<?php echo $id ?>" id="tambah<?php echo $id ?>" value="Tambah" style="border-radius:2px;border:none;font-size:12px;display:none;">
+							</form>
+						</div></td>
+				<td align="center"><input title="hapus" type="submit" name="hapus<?php echo $id; ?>" value=" " style="background:url(../images/trash.png) no-repeat center; border:none; cursor:pointer" onclick="javascript:if(confirm('Menghapus secara permanen nominator ini ???')){ return true; } else{ return false;}" /></td> 					
+					</tr>
+				</table>
+				</form>		
+			</div>		
+		</td>
+	<?php 
+		if (($i % 2)==0){
+			echo "</tr><tr>";
+		}	
+		$i++; } ?>
+	</tr>
+</table>

@@ -1,0 +1,111 @@
+<script type="text/javascript">
+	function pilih_kelas(){
+		var kelas=encodeURIComponent(document.getElementById("select_kelas").value);
+		location="main_menu.php?page=siswa&&kelas="+kelas;
+	}
+	function show(){
+  		var e=document.getElementById("nama");
+  		var a=document.getElementById("tombol");
+  		var b=document.getElementById("tambah");
+  		if(!e)return true;
+  		if(e.style.display=="none"){
+    		e.style.display="inline";
+    		b.style.display="inline";
+			a.style.display="none";
+  		} else {
+    		e.style.display="none";
+  		}
+}
+</script>
+<?php
+	require_once("../plugin/qFrame/qFrame.php");
+	$op=new q_sql();
+	$tbl=new q_grid();
+	$kelas="";
+	if(isset($_REQUEST['kelas'])){
+		$kelas=$_REQUEST['kelas'];
+	}
+	if(isset($_POST['hapus'])){
+		$id=$_POST['cek'];
+		$jum=count($id);
+		for ($i=0; $i<$jum; $i++){
+			$q=$op->delete("tb_siswa","id='$id[$i]'");
+		}
+	}
+?>
+<table width="100%">
+	<tr>
+		<td>
+		<form method="post" action="p_siswa.php" name="tambahSiswa">
+			<b>
+			Kelas :
+			<select id="select_kelas" name="select_kelas" onchange="pilih_kelas();">
+				<option value="" >- Pilih Kelas -</option>
+				<?php 
+					for($i=1;$i<=12;$i++){						
+				?>					
+				<option value="XII IPA <?php echo $i; ?>" <?php if($kelas=="XII IPA ".$i){echo "selected";} ?> >XII IPA <?php echo $i; ?></option>
+				<?php } ?>
+				<option value="XII IPS 1" <?php if($kelas=="XII IPS 1"){echo "selected";} ?> >XII IPS 1</option>
+				<option value="XII IPS 2" <?php if($kelas=="XII IPS 2"){echo "selected";} ?> >XII IPS 2</option>
+				<option value="XII AKSEL" <?php if($kelas=="XII AKSEL"){echo "selected";} ?> >XII AKSEL</option>
+			</select>	
+			</b>
+			<?php
+				if(isset($_REQUEST['kelas'])){
+					if($kelas!=""){
+			?>
+			<input type="button"	value="Tambah" class="button" id="tombol" onclick="show();document.getElementById('nama').focus()">
+				<input type="text" id="nama" name="nama" style="display:none; width:250px">
+				<input type="submit" class="button" id="tambah" name="tambah" value="Tambah" style="display:none">
+			<?php }} ?>	
+		</form>
+		</td>	
+	</tr>
+	<tr>
+		<td>
+			<div><?php if(isset($_REQUEST['kelas'])){
+					$kelas=$_REQUEST['kelas'];
+				?>
+				<table cellpadding="1" cellspacing="1" border="0" align="left" bgcolor="#CCCCCC" style="font-family:arial;margin-top:0px;">
+				<form name="frm2" action="<? $_SERVER['PHP_SELF'];?>" method="post">
+				<tr style="color:#FFFFFF;background:#006699;">
+					<th style="padding:5px;" width="30px">No</th>	
+					<th width="400px">Nama</th>	
+					<th width="150px">Checked in</th>
+					<th width="100px">Action</th>			
+				</tr>
+				<?php
+					$view=$op->cs_query("SELECT * FROM tb_siswa WHERE kelas='$kelas' ORDER BY nama ASC");
+					$i=1;
+					while($dt=mysql_fetch_array($view)){
+					if($i % 2){
+						$bg="#EAEAEA";
+					}else{
+						$bg="#FFFFFF";
+					}
+					$status=$dt['status'];
+					if($status=="0"){
+						$time="Belum";
+					}else{
+						$time=$dt['time'];	
+					}
+				?>
+				<tr bgcolor="<? echo $bg;?>" style="color:#333333; font-size:16px" id="anim">
+					<td align="center"><? echo $i;?></td>
+					<td style="padding-left:3px"><? echo $dt['nama'];?></td>
+					<td align="center"><? echo $time; ?></td>
+					<td align="center"><input type="checkbox" name="cek[]" id="cek[]" value="<? echo $dt['id'];?>" /> </td>
+				</tr>
+				<?php $i++;} ?>
+				<tr bgcolor="#FFFFFF">
+				<td colspan="3" align="right">Total Siswa: <? echo mysql_num_rows($view);?>&nbsp;</td>
+				<td align="center"><input title="hapus" type="submit" name="hapus" value=" " style="background:url(../images/trash.png) no-repeat center; border:none; cursor:pointer" onclick="javascript:if(confirm('Menghapus secara permanen data siswa ini ???')){ return true; } else{ return false;}" /></td> 
+				</tr>
+				</form>
+				</table>
+				<?php } ?>
+			</div>		
+		</td>	
+	</tr>
+</table>

@@ -1,0 +1,21 @@
+<div id="resetting"><img src="../images/loading2.gif"> Resetting Data</div>
+<?php
+	require_once("../plugin/qFrame/qFrame.php");
+	$op=new q_sql();
+	$view=$op->cs_query("SELECT * FROM tb_siswa ORDER BY nama ASC");
+	while($dt=mysql_fetch_array($view)) {
+		$id=$dt['id'];
+		$upd=$op->update("tb_siswa","status='0',time='00:00:00'","id","$id");
+	}
+	$view=$op->cs_query("SELECT * FROM tb_vote ORDER BY no ASC");
+	while($h=mysql_fetch_array($view)) {
+		$id=$h['no'];
+		$hapus=$op->delete("tb_vote","no='$id'");
+	}
+	if(($upd) && ($hapus)){ ?>
+	<script type="text/javascript" >
+		alert("Data Telah di-Reset...");
+		location="main_menu.php?page=tools";
+	</script>
+<?php	}
+?>
